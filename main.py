@@ -7,14 +7,11 @@ import json
 from typing import List
 from loguru import logger
 from pymonad.maybe import Maybe, Just, Nothing
-from pydantic import parse_obj_as
+from pydantic import parse_obj_as, ValidationError
 
 from models.lsblk import LsblkRoot, BlockDevice
 from models.smartctl import SmartctlRoot, Device
 from models.zpool import ZpoolStatus
-
-from pydantic.error_wrappers import ValidationError
-
 
 
 def run_cmd(cmd: str, allowed_ret_codes: List[int] = [0]):
@@ -56,7 +53,14 @@ def get_disks_info():
         return None
 
     # fill models with json
-    lsblk_data = LsblkRoot.parse_obj(json.loads(lsblk_json.stdout.decode()))
+    try:
+        lsblk_data = LsblkRoot.model_validate(json.loads(lsblk_json.stdout.decode()))
+    except ValidationError as ex:
+        logger.error(f"Validation the lsblk failed. Exception: {ex}")
+        return None
+    except Exception as ex:
+        logger.error(ex)
+        return None
 
     # filter block devices to find only physical disks
     disks: List[BlockDevice] = list()
@@ -67,6 +71,7 @@ def get_disks_info():
 
     # (hdparm) get power mode but avoid to wake up the drives
     # it is also possible to use smartctl, but it requires to know device type to avoid wake up
+    # (e.g. USB drives are problematic)
     power_modes = dict()
     for d in disks:
         power_mode = "null"
@@ -81,8 +86,6 @@ def get_disks_info():
 
         power_modes[f"/dev/{d.name}"] = power_mode
 
-    print(power_modes)
-
     # get health from all of the physical disks
     smarts: List[SmartctlRoot] = list()
     for d in disks:
@@ -91,7 +94,7 @@ def get_disks_info():
             continue
 
         try:
-            smartctl_data = SmartctlRoot.parse_obj(json.loads(smartctl_json.stdout.decode()))
+            smartctl_data = SmartctlRoot.model_validate(json.loads(smartctl_json.stdout.decode()))
             smarts.append(smartctl_data)
         except ValidationError as ex:
             logger.error(f"Validation the smartctl failed with /dev/{d.name} disk. Exception: {ex}")
@@ -100,8 +103,7 @@ def get_disks_info():
             logger.error(ex)
             return None
 
-    return [json.loads(s.json()) for s in smarts]
-
+    return [json.loads(s.model_dump_json()) for s in smarts]
 
 
 def get_zpool_info():
@@ -137,7 +139,7 @@ def get_zpool_info():
         state
     ))
 
-    return [json.loads(s.json()) for s in statuses]
+    return [json.loads(s.model_dump_json()) for s in statuses]
 
 
 
