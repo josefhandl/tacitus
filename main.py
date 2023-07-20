@@ -109,7 +109,7 @@ def get_disks_info():
 def get_zpool_info():
     lsblk_raw = run_cmd("zpool status")
 
-    p_pool =  r"^  pool:\s+(\w+)"
+    p_pool =  r"^  pool:\s+([\w_\-\.]+)"
     p_state = r"^ state:\s+(\w+)"
 
     statuses: List[ZpoolStatus] = list()
