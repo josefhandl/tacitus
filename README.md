@@ -1,4 +1,5 @@
 
+```
 # list all drives includes ssds, loop, drive volumes
 'lsblk --json --output NAME,TYPE,MOUNTPOINTS --tree'
 
@@ -10,7 +11,4 @@ hdparm -C /dev/sda
 
 # TODO check hdd vs ssd + smart
 'sudo smartctl -a /dev/nvme0 --json'
-
-
-
-
+```
