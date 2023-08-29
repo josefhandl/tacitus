@@ -12,6 +12,7 @@ from pydantic import parse_obj_as, ValidationError
 from models.lsblk import LsblkRoot, BlockDevice
 from models.smartctl import SmartctlRoot, Device
 from models.zpool import ZpoolStatus
+from models.wireguard import WireguardStatus
 
 
 def run_cmd(cmd: str, allowed_ret_codes: List[int] = [0]):
@@ -142,8 +143,55 @@ def get_zpool_info():
     return [json.loads(s.model_dump_json()) for s in statuses]
 
 
+def get_wireguard_info():
+    wg_raw = run_cmd("wg")
 
-print(get_disks_info())
-print(get_zpool_info())
+    p_peer     = r"^peer:\s+([^\s]+)"
+    p_transfer = r"^  transfer:\s+(\w+)"
+
+    statuses: List[WireguardStatus] = list()
+
+    peer = None
+    transfer = None
+
+    for line in wg_raw.stdout.decode().split('\n'):
+        # "peer"
+        if match := re.match(p_peer,  line):
+            # if peer is already set, save the last round (and start a new one)
+            if peer:
+                print(peer)
+                statuses.append(WireguardStatus(
+                    peer,
+                    transfer
+                ))
+                peer = None
+
+            peer = match.group(1)
+
+        # "transfer"
+        if match := re.match(p_transfer, line):
+            transfer = match.group(1)
+
+    statuses.append(WireguardStatus(
+        peer,
+        transfer
+    ))
+
+    return [json.loads(s.model_dump_json()) for s in statuses]
+
+def system_reboot():
+    run_cmd("reboot")
+
+def system_shutdown():
+    run_cmd("shutdown -P now")
+
+# TODO nebude lepsi tento balik? unattended-upgrades
+def system_update():
+    run_cmd("apt update && apt upgrade -y")
+
+
+#print(get_disks_info())
+#print(get_zpool_info())
+print(get_wireguard_info())
 
 
