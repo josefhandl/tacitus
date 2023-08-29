@@ -12,7 +12,7 @@ from pydantic import parse_obj_as, ValidationError
 from models.lsblk import LsblkRoot, BlockDevice
 from models.smartctl import SmartctlRoot, Device
 from models.zpool import ZpoolStatus
-from models.wireguard import WireguardStatus
+from models.wireguard import WireguardStatus, WireguardPeer
 
 
 def run_cmd(cmd: str, allowed_ret_codes: List[int] = [0]):
@@ -146,35 +146,75 @@ def get_zpool_info():
 def get_wireguard_info():
     wg_raw = run_cmd("wg")
 
-    p_peer     = r"^peer:\s+([^\s]+)"
-    p_transfer = r"^  transfer:\s+(\w+)"
+    # interface part
+    p_interface = r"^interface:\s+([^\s]+)"
+
+    # peer part
+    p_peer      = r"^peer:\s+([^\s]+)"
+    p_endpoint  = r"^  endpoint:\s+([^\s]+)"
+    p_transfer  = r"^  transfer:\s+(\w+)"
 
     statuses: List[WireguardStatus] = list()
+    interface = None
 
+    peers: List[WireguardPeer] = list()
     peer = None
+    endpoint = None
     transfer = None
 
     for line in wg_raw.stdout.decode().split('\n'):
+        # "interface"
+        if match := re.match(p_interface,  line):
+            # if interface is already set, save the last interface with all peers (and start a new one)
+            if interface:
+                # save last peer and reset
+                peers.append(WireguardPeer(
+                    peer,
+                    endpoint,
+                    transfer
+                ))
+                peer = None
+                # save last interface and reset (with peers)
+                statuses.append(WireguardStatus(
+                    interface,
+                    peers
+                ))
+                interface = None
+                peers = list()
+
+            interface = match.group(1)
+
         # "peer"
         if match := re.match(p_peer,  line):
             # if peer is already set, save the last round (and start a new one)
             if peer:
-                print(peer)
-                statuses.append(WireguardStatus(
+                # save last peer and reset
+                peers.append(WireguardPeer(
                     peer,
+                    endpoint,
                     transfer
                 ))
                 peer = None
 
             peer = match.group(1)
 
+        # "endpoint"
+        if match := re.match(p_endpoint, line):
+            endpoint = match.group(1)
+
         # "transfer"
         if match := re.match(p_transfer, line):
             transfer = match.group(1)
 
-    statuses.append(WireguardStatus(
+    peers.append(WireguardPeer(
         peer,
+        endpoint,
         transfer
+    ))
+
+    statuses.append(WireguardStatus(
+        interface,
+        peers
     ))
 
     return [json.loads(s.model_dump_json()) for s in statuses]
