@@ -12,7 +12,7 @@ from pydantic import parse_obj_as, ValidationError
 from models.lsblk import LsblkRoot, BlockDevice
 from models.smartctl import SmartctlRoot, Device
 from models.zpool import ZpoolStatus
-from models.wireguard import WireguardStatus, WireguardPeer
+from models.wireguard import WireguardStatus, WireguardPeer, WireguardPeerTransfer
 
 
 def run_cmd(cmd: str, allowed_ret_codes: List[int] = [0]):
@@ -150,9 +150,11 @@ def get_wireguard_info():
     p_interface = r"^interface:\s+([^\s]+)"
 
     # peer part
-    p_peer      = r"^peer:\s+([^\s]+)"
-    p_endpoint  = r"^  endpoint:\s+([^\s]+)"
-    p_transfer  = r"^  transfer:\s+(\w+)"
+    p_peer             = r"^peer:\s+([^\s]+)"
+    p_endpoint         = r"^  endpoint:\s+([^\s]+)"
+    p_allowed_ips      = r"^  allowed ips:\s+([^\s]+)"
+    p_latest_handshake = r"^  latest handshake:\s+([^\n]+)"
+    p_transfer         = r"^  transfer:\s+([^\n]+)\s+received,\s+([^\n]+)\s+sent"
 
     statuses: List[WireguardStatus] = list()
     interface = None
@@ -160,22 +162,30 @@ def get_wireguard_info():
     peers: List[WireguardPeer] = list()
     peer = None
     endpoint = None
+    allowed_ips = None
+    latest_handshake = None
     transfer = None
 
     # helper function
     def save_reset_peer():
         nonlocal peer
         nonlocal endpoint
+        nonlocal allowed_ips
+        nonlocal latest_handshake
         nonlocal transfer
 
         peers.append(WireguardPeer(
             peer,
             endpoint,
+            allowed_ips,
+            latest_handshake,
             transfer
         ))
 
         peer = None
         endpoint = None
+        allowed_ips = None
+        latest_handshake = None
         transfer = None
 
     # helper function
@@ -214,13 +224,24 @@ def get_wireguard_info():
 
             peer = match.group(1)
 
+        # "allowed ips"
+        if match := re.match(p_allowed_ips, line):
+            allowed_ips = match.group(1)
+
+        # "latest handshake"
+        if match := re.match(p_latest_handshake, line):
+            latest_handshake = match.group(1)
+
         # "endpoint"
         if match := re.match(p_endpoint, line):
             endpoint = match.group(1)
 
         # "transfer"
         if match := re.match(p_transfer, line):
-            transfer = match.group(1)
+            transfer = WireguardPeerTransfer(
+                match.group(1),
+                match.group(2)
+            )
 
     # save the last section
     save_reset_peer()
