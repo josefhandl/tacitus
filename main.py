@@ -162,25 +162,46 @@ def get_wireguard_info():
     endpoint = None
     transfer = None
 
+    # helper function
+    def save_reset_peer():
+        nonlocal peer
+        nonlocal endpoint
+        nonlocal transfer
+
+        peers.append(WireguardPeer(
+            peer,
+            endpoint,
+            transfer
+        ))
+
+        peer = None
+        endpoint = None
+        transfer = None
+
+    # helper function
+    def save_reset_status():
+        nonlocal interface
+        nonlocal peers
+
+        statuses.append(WireguardStatus(
+            interface,
+            peers
+        ))
+
+        interface = None
+        peers = list()
+
+    # let's parse the "wg" output
     for line in wg_raw.stdout.decode().split('\n'):
         # "interface"
         if match := re.match(p_interface,  line):
             # if interface is already set, save the last interface with all peers (and start a new one)
             if interface:
                 # save last peer and reset
-                peers.append(WireguardPeer(
-                    peer,
-                    endpoint,
-                    transfer
-                ))
-                peer = None
+                save_reset_peer()
+
                 # save last interface and reset (with peers)
-                statuses.append(WireguardStatus(
-                    interface,
-                    peers
-                ))
-                interface = None
-                peers = list()
+                save_reset_status()
 
             interface = match.group(1)
 
@@ -189,12 +210,7 @@ def get_wireguard_info():
             # if peer is already set, save the last round (and start a new one)
             if peer:
                 # save last peer and reset
-                peers.append(WireguardPeer(
-                    peer,
-                    endpoint,
-                    transfer
-                ))
-                peer = None
+                save_reset_peer()
 
             peer = match.group(1)
 
@@ -206,16 +222,9 @@ def get_wireguard_info():
         if match := re.match(p_transfer, line):
             transfer = match.group(1)
 
-    peers.append(WireguardPeer(
-        peer,
-        endpoint,
-        transfer
-    ))
-
-    statuses.append(WireguardStatus(
-        interface,
-        peers
-    ))
+    # save the last section
+    save_reset_peer()
+    save_reset_status()
 
     return [json.loads(s.model_dump_json()) for s in statuses]
 
