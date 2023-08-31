@@ -11,7 +11,7 @@ from pydantic import parse_obj_as, ValidationError
 
 from models.lsblk import LsblkRoot, BlockDevice
 from models.smartctl import SmartctlRoot, Device
-from models.zpool import ZpoolStatus
+from models.zpool import ZpoolStatus, ZpoolList
 from models.wireguard import WireguardStatus, WireguardPeer, WireguardPeerTransfer
 
 
@@ -107,8 +107,8 @@ def get_disks_info():
     return [json.loads(s.model_dump_json()) for s in smarts]
 
 
-def get_zpool_info():
-    lsblk_raw = run_cmd("zpool status")
+def get_zpool_status():
+    zpool_raw = run_cmd("zpool status")
 
     p_pool =  r"^  pool:\s+([\w_\-\.]+)"
     p_state = r"^ state:\s+(\w+)"
@@ -118,7 +118,7 @@ def get_zpool_info():
     pool = None
     state = None
 
-    for line in lsblk_raw.stdout.decode().split('\n'):
+    for line in zpool_raw.stdout.decode().split('\n'):
         # "pool"
         if match := re.match(p_pool,  line):
             # if pool is already set, save the last round (and start a new one)
@@ -141,6 +141,24 @@ def get_zpool_info():
     ))
 
     return [json.loads(s.model_dump_json()) for s in statuses]
+
+def get_zpool_list():
+    zpool_raw = run_cmd("zpool list")
+
+    p_group_part =  r"([^\s]+)\s+"
+    p_groups = rf'^{p_group_part * 10}([^\s]+)$'
+
+    for line in zpool_raw.stdout.decode().split('\n'):
+        if match := re.match(p_groups, line):
+            if match.group(1) == 'NAME':
+                continue
+
+            # create list of groups and replace '-' with None
+            data = [None if g == '-' else g for g in match.groups()]
+            # unpack list to the constructor
+            result = ZpoolList(*data)
+
+            return json.loads(result.model_dump_json())
 
 
 def get_wireguard_info():
@@ -261,7 +279,8 @@ def system_update():
 
 
 #print(get_disks_info())
-#print(get_zpool_info())
-print(get_wireguard_info())
+print(get_zpool_list())
+#print(get_zpool_status())
+#print(get_wireguard_info())
 
 
