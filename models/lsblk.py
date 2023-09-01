@@ -9,7 +9,7 @@ BlockDeviceRef = ForwardRef("BlockDevice")
 class BlockDevice(BaseModel):
     name: str
     type: str
-    mountpoints: List[Optional[str]]
+    mountpoint: Optional[str]
     children: Optional[List[BlockDeviceRef]] = list()
 
 class LsblkRoot(BaseModel):

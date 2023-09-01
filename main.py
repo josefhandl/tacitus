@@ -49,7 +49,7 @@ def run_cmd(cmd: str, allowed_ret_codes: List[int] = [0]):
 
 def get_disks_info():
     # (lsblk) get all block devices
-    lsblk_json = run_cmd("lsblk --json --output NAME,TYPE,MOUNTPOINTS --tree")
+    lsblk_json = run_cmd("lsblk --json --output NAME,TYPE,MOUNTPOINT --tree")
     if not lsblk_json:
         return None
 
