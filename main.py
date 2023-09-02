@@ -120,7 +120,7 @@ def get_disks_info():
             smartctl_model.serial_number,
             power_mode,
             smartctl_model.smart_status.passed,
-            smartctl_model.temperature.current,
+            str(smartctl_model.temperature.current) if smartctl_model.temperature else None,
             smartctl_model.device.type
         ))
 

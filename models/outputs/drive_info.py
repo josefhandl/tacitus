@@ -9,7 +9,7 @@ class DriveInfo(BaseModel):
     serial_number: str
     power_mode: str
     smart_status_passed: bool
-    temperature: int
+    temperature: Optional[str]
     drive_type: str
 
     def __init__(self,

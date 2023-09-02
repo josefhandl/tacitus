@@ -18,4 +18,4 @@ class SmartctlRoot(BaseModel):
     model_name: str
     serial_number: str
     smart_status: SmartStatus
-    temperature: SmartTemperature
+    temperature: Optional[SmartTemperature] = 0
