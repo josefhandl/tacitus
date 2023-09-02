@@ -1,5 +1,6 @@
 from fastapi.routing import APIRouter
 
+
 class BaseRouter:
     PREFIX = "/"
 

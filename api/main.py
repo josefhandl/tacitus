@@ -3,6 +3,7 @@ from api.modules.smartctl.router import router as smartctl_router
 
 app = FastAPI()
 
+
 @app.get("/")
 async def root() -> dict:
     return {}

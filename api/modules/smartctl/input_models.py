@@ -1,12 +1,15 @@
 from typing import Optional, List, ForwardRef
 from pydantic import BaseModel
 
+
 class Device(BaseModel):
     name: str
     type: str
 
+
 class SmartStatus(BaseModel):
     passed: bool
+
 
 class SmartctlRoot(BaseModel):
     device: Device
@@ -18,11 +21,13 @@ class SmartctlRoot(BaseModel):
 
 BlockDeviceRef = ForwardRef("BlockDevice")
 
+
 class BlockDevice(BaseModel):
     name: str
     type: str
     mountpoint: Optional[str]
     children: Optional[List[BlockDeviceRef]] = list()
+
 
 class LsblkRoot(BaseModel):
     blockdevices: Optional[List[BlockDevice]]

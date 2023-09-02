@@ -9,7 +9,6 @@ import re
 from fastapi import HTTPException
 
 
-
 class Smartctl(BaseRouter):
     PREFIX = "/smartctl"
 
@@ -56,7 +55,7 @@ class Smartctl(BaseRouter):
         # get health from all of the physical disks
         smarts: List[SmartctlRoot] = list()
         for d in disks:
-            smartctl_json = run_cmd(f"smartctl -i -a --json /dev/{d.name}", [0, 4, 64, 68, 128]) # -d sat
+            smartctl_json = run_cmd(f"smartctl -i -a --json /dev/{d.name}", [0, 4, 64, 68, 128])  # -d sat
             if not smartctl_json:
                 continue
 
