@@ -4,15 +4,17 @@ import re
 import subprocess
 import json
 
-from typing import List
+from typing import List, Dict
 from loguru import logger
 from pymonad.maybe import Maybe, Just, Nothing
 from pydantic import parse_obj_as, ValidationError
 
-from models.lsblk import LsblkRoot, BlockDevice
-from models.smartctl import SmartctlRoot, Device
-from models.zpool import ZpoolStatus, ZpoolList
-from models.wireguard import WireguardStatus, WireguardPeer, WireguardPeerTransfer
+from models.inputs.lsblk import LsblkRoot, BlockDevice
+from models.inputs.smartctl import SmartctlRoot, Device
+from models.inputs.zpool import ZpoolStatus, ZpoolList
+from models.inputs.wireguard import WireguardStatus, WireguardPeer, WireguardPeerTransfer
+
+from models.outputs.drive_info import DriveInfo
 
 
 def run_cmd(cmd: str, allowed_ret_codes: List[int] = [0]):
@@ -85,10 +87,10 @@ def get_disks_info():
                 if match := re.match(r_power_mode, line):
                     power_mode = match.group(1)
 
-        power_modes[f"/dev/{d.name}"] = power_mode
+        power_modes[d.name] = power_mode
 
     # get health from all of the physical disks
-    smarts: List[SmartctlRoot] = list()
+    smarts: Dict[SmartctlRoot] = dict()
     for d in disks:
         smartctl_json = run_cmd(f"smartctl -i -a --json /dev/{d.name}", [0, 4, 64, 68, 128]) # -d sat
         if not smartctl_json:
@@ -96,7 +98,7 @@ def get_disks_info():
 
         try:
             smartctl_data = SmartctlRoot.model_validate(json.loads(smartctl_json.stdout.decode()))
-            smarts.append(smartctl_data)
+            smarts[d.name] = smartctl_data
         except ValidationError as ex:
             logger.error(f"Validation the smartctl failed with /dev/{d.name} disk. Exception: {ex}")
             return None
@@ -104,7 +106,25 @@ def get_disks_info():
             logger.error(ex)
             return None
 
-    return [json.loads(s.model_dump_json()) for s in smarts]
+    # convert Lsblk models, power modes and Smartctl models into the final model ready for output
+    result: List[DriveInfo] = list()
+    for physical_disk in disks:
+        block_device_path = physical_disk.name
+        power_mode = power_modes[block_device_path]
+        smartctl_model = smarts[block_device_path]
+
+        result.append(DriveInfo(
+            block_device_path,
+            smartctl_model.model_family,
+            smartctl_model.model_name,
+            smartctl_model.serial_number,
+            power_mode,
+            smartctl_model.smart_status.passed,
+            smartctl_model.temperature.current,
+            smartctl_model.device.type
+        ))
+
+    return [json.loads(di.model_dump_json()) for di in result]
 
 
 def get_zpool_status():
