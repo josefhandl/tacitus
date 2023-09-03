@@ -138,16 +138,25 @@ def get_zpool_status():
     pool = None
     state = None
 
+    # helper function
+    def save_reset_status():
+        nonlocal pool
+        nonlocal state
+
+        statuses.append(ZpoolStatus(
+            pool,
+            state
+        ))
+
+        pool = None
+        state = None
+
     for line in zpool_raw.stdout.decode().split('\n'):
         # "pool"
         if match := re.match(p_pool,  line):
             # if pool is already set, save the last round (and start a new one)
             if pool:
-                statuses.append(ZpoolStatus(
-                    pool,
-                    state
-                ))
-                pool = None
+                save_reset_status()
 
             pool = match.group(1)
 
@@ -155,12 +164,10 @@ def get_zpool_status():
         if match := re.match(p_state, line):
             state = match.group(1)
 
-    statuses.append(ZpoolStatus(
-        pool,
-        state
-    ))
+    save_reset_status()
 
     return [json.loads(s.model_dump_json()) for s in statuses]
+
 
 def get_zpool_list():
     zpool_raw = run_cmd("zpool list")
