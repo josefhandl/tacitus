@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 
 
 class PoolList(BaseModel):
@@ -14,3 +14,11 @@ class PoolList(BaseModel):
     dedup: str
     health: str
     altroot: Optional[str]
+
+
+class PoolStatus(BaseModel):
+    pool: str
+    state: str
+
+class PoolStatuses(BaseModel):
+    pools: List[PoolStatus]

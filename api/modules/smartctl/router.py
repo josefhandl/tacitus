@@ -69,7 +69,7 @@ class Smartctl(BaseRouter):
                 logger.error(ex)
                 raise HTTPException(status_code=500, detail="Unknown error")
 
-        return [json.loads(s.model_dump_json()) for s in smarts]
+        return {"result": [json.loads(s.model_dump_json()) for s in smarts]}
 
 
 router = Smartctl()
