@@ -10,12 +10,14 @@ class Device(BaseModel):
 class SmartStatus(BaseModel):
     passed: bool
 
+
 class SmartTemperature(BaseModel):
     current: int
 
+
 class SmartctlRoot(BaseModel):
     device: Device
-    model_family: Optional[str] = ''
+    model_family: Optional[str] = ""
     model_name: str
     serial_number: str
     smart_status: SmartStatus

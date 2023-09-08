@@ -11,6 +11,7 @@ app = FastAPI()
 async def root() -> dict:
     return {}
 
+
 app.include_router(smartctl_router())
 app.include_router(zpool_router())
 app.include_router(wireguard_router())

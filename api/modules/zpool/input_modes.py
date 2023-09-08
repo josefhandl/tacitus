@@ -6,13 +6,8 @@ class ZpoolStatus(BaseModel):
     pool: str
     state: str
 
-    def __init__(self,
-            pool,
-            state):
-        super().__init__(
-            pool=pool,
-            state=state
-        )
+    def __init__(self, pool, state):
+        super().__init__(pool=pool, state=state)
 
 
 class ZpoolList(BaseModel):
@@ -29,18 +24,19 @@ class ZpoolList(BaseModel):
     altroot: Optional[str]
 
     def __init__(
-            self,
-            name,
-            size,
-            alloc,
-            free,
-            ckpoint,
-            expandsz,
-            frag,
-            cap,
-            dedup,
-            health,
-            altroot):
+        self,
+        name,
+        size,
+        alloc,
+        free,
+        ckpoint,
+        expandsz,
+        frag,
+        cap,
+        dedup,
+        health,
+        altroot,
+    ):
         super().__init__(
             name=name,
             size=size,
@@ -52,5 +48,5 @@ class ZpoolList(BaseModel):
             cap=cap,
             dedup=dedup,
             health=health,
-            altroot=altroot
+            altroot=altroot,
         )

@@ -20,5 +20,6 @@ class PoolStatus(BaseModel):
     pool: str
     state: str
 
+
 class PoolStatuses(BaseModel):
     pools: List[PoolStatus]

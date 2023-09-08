@@ -13,26 +13,25 @@ class Zpool(BaseRouter):
     async def get_list(self) -> PoolList:
         zpool_raw = run_cmd("zpool list")
 
-        p_group_part =  r"([^\s]+)\s+"
-        p_groups = rf'^{p_group_part * 10}([^\s]+)$'
+        p_group_part = r"([^\s]+)\s+"
+        p_groups = rf"^{p_group_part * 10}([^\s]+)$"
 
-        for line in zpool_raw.stdout.decode().split('\n'):
+        for line in zpool_raw.stdout.decode().split("\n"):
             if match := re.match(p_groups, line):
-                if match.group(1) == 'NAME':
+                if match.group(1) == "NAME":
                     continue
 
                 # create list of groups and replace '-' with None
-                data = [None if g == '-' else g for g in match.groups()]
+                data = [None if g == "-" else g for g in match.groups()]
                 # unpack list to the constructor
                 result = ZpoolList(*data)
 
                 return json.loads(result.model_dump_json())
 
-
     async def get_status(self) -> PoolStatuses:
         zpool_raw = run_cmd("zpool status")
 
-        p_pool =  r"^  pool:\s+([\w_\-\.]+)"
+        p_pool = r"^  pool:\s+([\w_\-\.]+)"
         p_state = r"^ state:\s+(\w+)"
 
         statuses: List[ZpoolStatus] = list()
@@ -44,17 +43,14 @@ class Zpool(BaseRouter):
             nonlocal pool
             nonlocal state
 
-            statuses.append(ZpoolStatus(
-                pool,
-                state
-            ))
+            statuses.append(ZpoolStatus(pool, state))
 
             pool = None
             state = None
 
-        for line in zpool_raw.stdout.decode().split('\n'):
+        for line in zpool_raw.stdout.decode().split("\n"):
             # "pool"
-            if match := re.match(p_pool,  line):
+            if match := re.match(p_pool, line):
                 # if pool is already set, save the last round (and start a new one)
                 if pool:
                     save_reset_status()
@@ -67,9 +63,7 @@ class Zpool(BaseRouter):
 
         save_reset_status()
 
-        return {
-            "pools": [json.loads(s.model_dump_json()) for s in statuses]
-        }
+        return {"pools": [json.loads(s.model_dump_json()) for s in statuses]}
 
 
 router = Zpool()

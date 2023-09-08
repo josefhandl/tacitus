@@ -47,7 +47,7 @@ class Smartctl(BaseRouter):
             if hdparm_raw:
                 r_power_mode = r"^ drive state is:\s+(\w+)"
 
-                for line in hdparm_raw.stdout.decode().split('\n'):
+                for line in hdparm_raw.stdout.decode().split("\n"):
                     if match := re.match(r_power_mode, line):
                         power_mode = match.group(1)
 
@@ -80,16 +80,18 @@ class Smartctl(BaseRouter):
             if hasattr(smartctl_model, "temperature") and smartctl_model.temperature:
                 temperature = str(smartctl_model.temperature.current)
 
-            result.append(DriveInfo(
-                block_device_path,
-                smartctl_model.model_family,
-                smartctl_model.model_name,
-                smartctl_model.serial_number,
-                power_mode,
-                smartctl_model.smart_status.passed,
-                temperature,
-                smartctl_model.device.type
-            ))
+            result.append(
+                DriveInfo(
+                    block_device_path,
+                    smartctl_model.model_family,
+                    smartctl_model.model_name,
+                    smartctl_model.serial_number,
+                    power_mode,
+                    smartctl_model.smart_status.passed,
+                    temperature,
+                    smartctl_model.device.type,
+                )
+            )
 
         return {"result": [json.loads(di.model_dump_json()) for di in result]}
 

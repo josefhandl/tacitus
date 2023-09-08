@@ -12,15 +12,17 @@ class DriveInfo(BaseModel):
     temperature: Optional[str]
     drive_type: str
 
-    def __init__(self,
-            block_device_path,
-            model_family,
-            model_name,
-            serial_number,
-            power_mode,
-            smart_status_passed,
-            temperature,
-            drive_type):
+    def __init__(
+        self,
+        block_device_path,
+        model_family,
+        model_name,
+        serial_number,
+        power_mode,
+        smart_status_passed,
+        temperature,
+        drive_type,
+    ):
         super().__init__(
             block_device_path=block_device_path,
             model_family=model_family,
@@ -29,8 +31,9 @@ class DriveInfo(BaseModel):
             power_mode=power_mode,
             smart_status_passed=smart_status_passed,
             temperature=temperature,
-            drive_type=drive_type
+            drive_type=drive_type,
         )
+
 
 class SmartResult(BaseModel):
     result: List[DriveInfo]

@@ -22,7 +22,4 @@ class BaseRouter:
                 route = parameter_name.replace("get_", "")
                 if route == "root":
                     route = ""
-                self.router.get(
-                    f"/{route}",
-                    response_model=parameter.__annotations__["return"]
-                )(parameter)
+                self.router.get(f"/{route}", response_model=parameter.__annotations__["return"])(parameter)

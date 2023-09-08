@@ -4,3 +4,5 @@ pydantic_core==2.3.0
 PyMonad==2.4.0
 fastapi==0.103.0
 uvicorn[standard]==0.23.2
+flake8==6.1.0
+black==23.7.0
