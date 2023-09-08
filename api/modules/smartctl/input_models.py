@@ -10,6 +10,8 @@ class Device(BaseModel):
 class SmartStatus(BaseModel):
     passed: bool
 
+class SmartTemperature(BaseModel):
+    current: int
 
 class SmartctlRoot(BaseModel):
     device: Device
@@ -17,6 +19,7 @@ class SmartctlRoot(BaseModel):
     model_name: str
     serial_number: str
     smart_status: SmartStatus
+    temperature: Optional[SmartTemperature] = 0
 
 
 BlockDeviceRef = ForwardRef("BlockDevice")

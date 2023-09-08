@@ -1,11 +1,11 @@
 from ..model_base.router import BaseRouter
 from .input_models import SmartctlRoot, LsblkRoot, BlockDevice
-from .output_model import SmartResult
+from .output_model import SmartResult, DriveInfo
 from ...utilities.terminal import run_cmd
 import json
 from pydantic import ValidationError
 from loguru import logger
-from typing import List
+from typing import List, Dict
 import re
 from fastapi import HTTPException
 
@@ -51,10 +51,10 @@ class Smartctl(BaseRouter):
                     if match := re.match(r_power_mode, line):
                         power_mode = match.group(1)
 
-            power_modes[f"/dev/{d.name}"] = power_mode
+            power_modes[d.name] = power_mode
 
         # get health from all of the physical disks
-        smarts: List[SmartctlRoot] = list()
+        smarts: Dict[SmartctlRoot] = dict()
         for d in disks:
             smartctl_json = run_cmd(f"smartctl -i -a --json /dev/{d.name}", [0, 4, 64, 68, 128])  # -d sat
             if not smartctl_json:
@@ -62,7 +62,7 @@ class Smartctl(BaseRouter):
 
             try:
                 smartctl_data = SmartctlRoot.model_validate(json.loads(smartctl_json.stdout.decode()))
-                smarts.append(smartctl_data)
+                smarts[d.name] = smartctl_data
             except ValidationError as ex:
                 logger.error(f"Validation the smartctl failed with /dev/{d.name} disk. Exception: {ex}")
                 raise HTTPException(status_code=500, detail="Validation the smartctl failed")
@@ -70,7 +70,28 @@ class Smartctl(BaseRouter):
                 logger.error(ex)
                 raise HTTPException(status_code=500, detail="Unknown error")
 
-        return {"result": [json.loads(s.model_dump_json()) for s in smarts]}
+        # convert Lsblk models, power modes and Smartctl models into the final model ready for output
+        result: List[DriveInfo] = list()
+        for physical_disk in disks:
+            block_device_path = physical_disk.name
+            power_mode = power_modes[block_device_path]
+            smartctl_model = smarts[block_device_path]
+            temperature = None
+            if hasattr(smartctl_model, "temperature") and smartctl_model.temperature:
+                temperature = str(smartctl_model.temperature.current)
+
+            result.append(DriveInfo(
+                block_device_path,
+                smartctl_model.model_family,
+                smartctl_model.model_name,
+                smartctl_model.serial_number,
+                power_mode,
+                smartctl_model.smart_status.passed,
+                temperature,
+                smartctl_model.device.type
+            ))
+
+        return {"result": [json.loads(di.model_dump_json()) for di in result]}
 
 
 router = Smartctl()
