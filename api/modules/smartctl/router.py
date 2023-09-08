@@ -1,5 +1,6 @@
 from ..model_base.router import BaseRouter
 from .input_models import SmartctlRoot, LsblkRoot, BlockDevice
+from .output_model import SmartResult
 from ...utilities.terminal import run_cmd
 import json
 from pydantic import ValidationError
@@ -12,7 +13,7 @@ from fastapi import HTTPException
 class Smartctl(BaseRouter):
     PREFIX = "/smartctl"
 
-    async def get_root(self) -> dict:
+    async def get_root(self) -> SmartResult:
         # (lsblk) get all block devices
         lsblk_json = run_cmd("lsblk --json --output NAME,TYPE,MOUNTPOINT --tree")
         if not lsblk_json:
