@@ -15,6 +15,7 @@ class BaseRouter:
         for parameter_name in dir(self):
             if parameter_name.startswith("__"):
                 continue
+            # TODO: Make this better and cleaner.
             if parameter_name.startswith("get_"):
                 parameter = getattr(self, parameter_name)
                 if not callable(parameter):
@@ -23,3 +24,11 @@ class BaseRouter:
                 if route == "root":
                     route = ""
                 self.router.get(f"/{route}", response_model=parameter.__annotations__["return"])(parameter)
+            if parameter_name.startswith("post_"):
+                parameter = getattr(self, parameter_name)
+                if not callable(parameter):
+                    continue
+                route = parameter_name.replace("post_", "")
+                if route == "root":
+                    route = ""
+                self.router.post(f"/{route}", response_model=parameter.__annotations__["return"])(parameter)
