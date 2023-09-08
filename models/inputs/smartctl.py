@@ -9,23 +9,13 @@ class Device(BaseModel):
 class SmartStatus(BaseModel):
     passed: bool
 
+class SmartTemperature(BaseModel):
+    current: int
+
 class SmartctlRoot(BaseModel):
     device: Device
     model_family: Optional[str] = ''
     model_name: str
     serial_number: str
     smart_status: SmartStatus
-
-
-class PartitionModel(BaseModel):
-    classic_path: str
-    id: str
-    uuid: str
-    mountpoint: str
-
-class DiskModel(BaseModel):
-    classic_path: str
-    id: str
-    uuid: str
-    partitions: List[PartitionModel]
-
+    temperature: Optional[SmartTemperature] = 0
