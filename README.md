@@ -1,4 +1,14 @@
 
+# Tacitus
+
+REST API for NAS systems for obtaining diagnostic and disk health information.
+
+Features:
+Disk info: S.M.A.R.T. health status, temperature, name, model, serial number...
+ZFS: zpool health, capacity info, fragmentation
+WireGuard: available interfaces, connected peers
+
+
 ```
 # list all drives includes ssds, loop, drive volumes
 'lsblk --json --output NAME,TYPE,MOUNTPOINTS --tree'
