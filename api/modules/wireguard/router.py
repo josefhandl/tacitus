@@ -14,7 +14,7 @@ class WireGuard(BaseRouter):
         """
         Returns Wireguard status.
         """
-        wg_raw = run_cmd("wg")
+        wg_raw = run_cmd("api/wrappers/w_wg")
 
         # interface part
         p_interface = r"^interface:\s+([^\s]+)"

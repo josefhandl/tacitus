@@ -17,6 +17,7 @@ class Smartctl(BaseRouter):
         # (lsblk) get all block devices
         lsblk_json = run_cmd("lsblk --json --output NAME,TYPE,MOUNTPOINT --tree")
         if not lsblk_json:
+            logger.error(f"Cannot get block devices")
             raise HTTPException(status_code=500, detail="Cannot get block devices")
 
         # fill models with json
@@ -26,7 +27,7 @@ class Smartctl(BaseRouter):
             logger.error(f"Validation the lsblk failed. Exception: {ex}")
             raise HTTPException(status_code=500, detail="Validation the lsblk failed")
         except Exception as ex:
-            logger.error(ex)
+            logger.error(f"Unknown error. Exception: {ex}")
             raise HTTPException(status_code=500, detail="Unknown error")
 
         # filter block devices to find only physical disks
@@ -43,7 +44,7 @@ class Smartctl(BaseRouter):
         for d in disks:
             power_mode = "null"
 
-            hdparm_raw = run_cmd(f"hdparm -C /dev/{d.name}")
+            hdparm_raw = run_cmd(f"api/wrappers/w_hdparm /dev/{d.name}")
             if hdparm_raw:
                 r_power_mode = r"^ drive state is:\s+(\w+)"
 
@@ -56,7 +57,7 @@ class Smartctl(BaseRouter):
         # get health from all of the physical disks
         smarts: Dict[SmartctlRoot] = dict()
         for d in disks:
-            smartctl_json = run_cmd(f"smartctl -i -a --json /dev/{d.name}", [0, 4, 64, 68, 128])  # -d sat
+            smartctl_json = run_cmd(f"api/wrappers/w_smartctl /dev/{d.name}", [0, 4, 64, 68, 128])  # -d sat
             if not smartctl_json:
                 continue
 
