@@ -1,19 +1,28 @@
 from fastapi import FastAPI
-from api.modules.smartctl.router import router as smartctl_router
-from api.modules.zpool.router import router as zpool_router
-from api.modules.wireguard.router import router as wireguard_router
-from api.modules.power.router import router as power_router
+from importlib import import_module
+from pathlib import Path
 
 
-app = FastAPI()
+def get_modules():
+    modules_path = Path(__file__).parent / "modules"
+    for module in modules_path.iterdir():
+        if module.is_dir() and module.name[0] != '_':
+            yield module
+
+def include_modules_by_paths(module_paths: list, app):
+    for module_path in module_paths:
+        module_name = f"api.modules.{module_path.name}.router"
+        module = import_module(module_name)
+        app.include_router(module.router())
 
 
-@app.get("/")
-async def root() -> dict:
-    return {}
+if __name__ == "api.main":
+    app = FastAPI()
+    @app.get("/")
+    async def root() -> dict:
+        return {
+            "app": "tacitus-api",
+            "version": "0.1.1"
+        }
 
-
-app.include_router(smartctl_router())
-app.include_router(zpool_router())
-app.include_router(wireguard_router())
-app.include_router(power_router())
+    include_modules_by_paths(get_modules(), app)
