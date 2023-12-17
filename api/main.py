@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from importlib import import_module
 from pathlib import Path
+from os import environ
 
 
 def get_modules():
@@ -14,9 +15,13 @@ def include_modules_by_paths(module_paths: list, app):
         module_name = f"api.modules.{module_path.name}.router"
         module = import_module(module_name)
         app.include_router(module.router())
+        print(f"Module {module_name} included")
 
 
 if __name__ == "api.main":
+
+    ignored_modules = environ.get("TACITUS_IGNORE_MODULES")
+
     app = FastAPI()
     @app.get("/")
     async def root() -> dict:
@@ -25,4 +30,8 @@ if __name__ == "api.main":
             "version": "0.1.1"
         }
 
-    include_modules_by_paths(get_modules(), app)
+    modules = get_modules()
+    if ignored_modules:
+        ignored_modules = ignored_modules.split(',')
+        modules = filter(lambda module: module.name not in ignored_modules, modules)
+    include_modules_by_paths(modules, app)
