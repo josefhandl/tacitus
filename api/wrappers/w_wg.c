@@ -5,8 +5,8 @@
 
 int main() {
     uid_t uid = getuid();
-	setuid(0);
-	system("/usr/bin/wg");
+    setuid(0);
+    system("/usr/bin/wg");
     setuid(uid);
-	return 0;
+    return 0;
 }
