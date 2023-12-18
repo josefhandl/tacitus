@@ -1,2 +1,5 @@
 venv/
 *.pyc
+api/wrappers/w_hdparm
+api/wrappers/w_smartctl
+api/wrappers/w_wg

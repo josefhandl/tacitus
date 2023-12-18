@@ -1,4 +1,4 @@
-from ..model_base.router import BaseRouter
+from .._model_base.router import BaseRouter
 from .input_models import SmartctlRoot, LsblkRoot, BlockDevice
 from .output_model import SmartResult, DriveInfo
 from ...utilities.terminal import run_cmd

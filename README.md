@@ -22,3 +22,7 @@ hdparm -C /dev/sda
 # TODO check hdd vs ssd + smart
 'sudo smartctl -a /dev/nvme0 --json'
 ```
+
+### Install before
+- `sudo apt-get install hdparm`
+- `sudo apt-get install smartmontools`

@@ -1,4 +1,4 @@
-from ..model_base.router import BaseRouter
+from .._model_base.router import BaseRouter
 from ...utilities.terminal import run_cmd
 
 
