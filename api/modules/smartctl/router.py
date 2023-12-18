@@ -35,7 +35,6 @@ class Smartctl(BaseRouter):
         for bd in lsblk_data.blockdevices:
             if bd.type == "disk":
                 disks.append(bd)
-                print(bd.children)
 
         # (hdparm) get power mode but avoid to wake up the drives
         # it is also possible to use smartctl, but it requires to know device type to avoid wake up

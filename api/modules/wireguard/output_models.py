@@ -3,5 +3,5 @@ from .input_models import WireguardStatus
 from typing import List
 
 
-class WireGuardResult(BaseModel):
+class WireguardResult(BaseModel):
     result: List[WireguardStatus]

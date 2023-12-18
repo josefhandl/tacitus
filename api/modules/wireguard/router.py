@@ -3,14 +3,14 @@ from ...utilities.terminal import run_cmd
 import re
 from typing import List
 from .input_models import WireguardPeer, WireguardPeerTransfer, WireguardStatus
-from .output_models import WireGuardResult
+from .output_models import WireguardResult
 import json
 
 
-class WireGuard(BaseRouter):
+class Wireguard(BaseRouter):
     PREFIX = "/wireguard"
 
-    async def get_root(self) -> WireGuardResult:
+    async def get_root(self) -> WireguardResult:
         """
         Returns Wireguard status.
         """
@@ -110,4 +110,4 @@ class WireGuard(BaseRouter):
         return {"result": [json.loads(s.model_dump_json()) for s in statuses]}
 
 
-router = WireGuard()
+router = Wireguard()

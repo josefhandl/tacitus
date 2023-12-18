@@ -31,5 +31,6 @@ class ZpoolListOut(BaseModel):
             health=health,
         )
 
+
 class ZpoolResult(BaseModel):
     result: List[ZpoolListOut]
