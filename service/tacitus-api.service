@@ -1,0 +1,15 @@
+[Unit]
+Description=TacitusAPI for remote monitoring
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=<User that may run this.>
+Environment="TACITUS_IGNORE_MODULES=<modules to ignore>"
+ExecStart=/usr/bin/env <path to git folder>/run_api.sh
+
+[Install]
+WantedBy=multi-user.target
