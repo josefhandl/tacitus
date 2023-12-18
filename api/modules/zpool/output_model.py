@@ -2,24 +2,34 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 
-class PoolList(BaseModel):
+class ZpoolListOut(BaseModel):
     name: str
     size: str
     alloc: str
     free: str
-    ckpoint: Optional[str]
-    expandsz: Optional[str]
     frag: str
     cap: str
-    dedup: str
     health: str
-    altroot: Optional[str]
 
+    def __init__(
+        self,
+        name,
+        size,
+        alloc,
+        free,
+        frag,
+        cap,
+        health,
+    ):
+        super().__init__(
+            name=name,
+            size=size,
+            alloc=alloc,
+            free=free,
+            frag=frag,
+            cap=cap,
+            health=health,
+        )
 
-class PoolStatus(BaseModel):
-    pool: str
-    state: str
-
-
-class PoolStatuses(BaseModel):
-    pools: List[PoolStatus]
+class ZpoolResult(BaseModel):
+    result: List[ZpoolListOut]
