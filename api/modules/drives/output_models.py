@@ -35,5 +35,5 @@ class DriveInfo(BaseModel):
         )
 
 
-class SmartResult(BaseModel):
+class DrivesResult(BaseModel):
     result: List[DriveInfo]
