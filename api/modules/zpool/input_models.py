@@ -1,8 +1,8 @@
+from typing import Optional
 from pydantic import BaseModel
-from typing import Optional, List
 
 
-class ZpoolListOut(BaseModel):
+class ZpoolList(BaseModel):
     name: str
     size: str
     alloc: str
@@ -30,7 +30,3 @@ class ZpoolListOut(BaseModel):
             cap=cap,
             health=health,
         )
-
-
-class ZpoolResult(BaseModel):
-    result: List[ZpoolListOut]

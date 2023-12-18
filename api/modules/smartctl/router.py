@@ -1,6 +1,6 @@
 from .._model_base.router import BaseRouter
 from .input_models import SmartctlRoot, LsblkRoot, BlockDevice
-from .output_model import SmartResult, DriveInfo
+from .output_models import SmartResult, DriveInfo
 from ...utilities.terminal import run_cmd
 import json
 from pydantic import ValidationError
